@@ -9,6 +9,8 @@ import json, time
 import httplib, urllib
 import os
 import random
+from text_structure import tag
+from oss import get_file_from_oss, delete_local_file
 
 reload(sys)
 sys.setdefaultencoding('ISO-8859-1')
@@ -178,6 +180,76 @@ class SliceIdGenerator:
         self.__ch = ch
         return self.__ch
 
+def checkAndDelete(file_name, taskid):
+    while True:
+        # 每隔20秒获取一次任务进度
+        progress = get_progress(taskid, file_name)
+        progress_dic = json.loads(progress)
+        if progress_dic['err_no'] != 0 and progress_dic['err_no'] != 26605:
+            print 'task error: ' + progress_dic['failed']
+            return
+        else :
+            data = progress_dic['data']
+            task_status = json.loads(data)
+            if task_status['status'] == 9:
+                print 'task ' + taskid + ' finished'
+                res = result(file_name, taskid)
+                text = res[0]["onebest"]
+                # save the tag
+                # tag_res = json.loads(tag(text))
+                # print (tag_res)
+                
+                delete_local_file(file_name)
+                break
+            print 'The task ' + taskid + ' is in processing, task status: ' + data
+
+        # 每次获取进度间隔20S
+        time.sleep(20)
+
+def recoginze(file_name, meeting_id):
+    get_file_from_oss(file_name, file_name)
+    pr = prepare(file_name)
+    prepare_result = json.loads(pr)
+    if prepare_result['ok'] != 0:
+        print 'prepare error, ' + pr
+        return {'status':'error', 'detail': pr}
+
+    taskid = prepare_result['data']
+    print 'prepare success, taskid: ' + taskid
+
+    # 2.分片上传文件
+    if upload(taskid, file_name):
+        print 'upload success'
+    else :
+        print 'uoload fail'
+
+    # 3.文件合并
+    mr = merge(taskid, file_name)
+    merge_result = json.loads(mr)
+    if merge_result['ok'] != 0:
+        print 'merge fail, ' + mr
+        delete_local_file(file_name)
+        return {'status':'error', 'detail': mr}
+    
+    return {'taskid':taskid,'status':'success', 'detail': 'null'}
+
+def check(file_name, taskid):
+    progress = get_progress(taskid, file_name)
+    progress_dic = json.loads(progress)
+    if progress_dic['err_no'] != 0 and progress_dic['err_no'] != 26605:
+        return {'taskid': taskid, 'status':'failed', 'detail':progress_dic['failed']}
+    else :
+        data = progress_dic['data']
+        task_status = json.loads(data)
+        if task_status['status'] == 9:
+            return {'taskid':taskid, 'status':'finished', 'detail':'null'}
+        return {'taskid':taskid, 'status':'processing', 'detail':data}
+
+def result(file_name, taskid):
+    lfasr_result = json.loads(get_result(taskid, file_name))
+    print "result: " + lfasr_result['data']
+    return json.loads(lfasr_result['data'])
+
 def request_lfasr_result(upload_file_path):
     # 1.预处理
     pr = prepare(upload_file_path)
@@ -219,12 +291,13 @@ def request_lfasr_result(upload_file_path):
             print 'The task ' + taskid + ' is in processing, task status: ' + data
 
         # 每次获取进度间隔20S
-        time.sleep(20)
+        time.sleep(10)
 
     # 5.获取结果
     lfasr_result = json.loads(get_result(taskid, upload_file_path))
     print "result: " + lfasr_result['data']
+    return json.loads(lfasr_result['data'])
 
 if __name__ == '__main__':
-    upload_file_path="./test.m4a"
+    upload_file_path="./whatever.m4a"
     request_lfasr_result(upload_file_path)
