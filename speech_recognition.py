@@ -9,8 +9,9 @@ import json, time
 import httplib, urllib
 import os
 import random
-from text_structure import tag
-from oss import get_file_from_oss, delete_local_file
+import text_structure
+import oss
+import dao
 
 reload(sys)
 sys.setdefaultencoding('ISO-8859-1')
@@ -180,7 +181,7 @@ class SliceIdGenerator:
         self.__ch = ch
         return self.__ch
 
-def checkAndDelete(file_name, taskid):
+def checkAndDelete(file_name, taskid, meeting):
     while True:
         # 每隔20秒获取一次任务进度
         progress = get_progress(taskid, file_name)
@@ -196,10 +197,17 @@ def checkAndDelete(file_name, taskid):
                 res = result(file_name, taskid)
                 text = res[0]["onebest"]
                 # save the tag
-                # tag_res = json.loads(tag(text))
-                # print (tag_res)
+                '''
+                tag_res = json.loads(text_structure.tag(text))
+                for i in tag_res.split('/'):
+                    #meeting.update(add_to_set__tag=i)
+
+                    meeting.tag.append(i)
+                meeting.save()
+                print (meeting.tag)
+                '''
                 
-                delete_local_file(file_name)
+                oss.delete_local_file(file_name)
                 break
             print 'The task ' + taskid + ' is in processing, task status: ' + data
 
@@ -207,12 +215,17 @@ def checkAndDelete(file_name, taskid):
         time.sleep(20)
 
 def recoginze(file_name, meeting_id):
-    get_file_from_oss(file_name, file_name)
+    meeting = dao.Meeting.objects(id=meeting_id)
+    if len(meeting) == 0
+        return {'status':'error', 'detail': 'Meeting not exist'}, None
+    meeting = meeting[0]
+
+    oss.get_file_from_oss(file_name, file_name)
     pr = prepare(file_name)
     prepare_result = json.loads(pr)
     if prepare_result['ok'] != 0:
         print 'prepare error, ' + pr
-        return {'status':'error', 'detail': pr}
+        return {'status':'error', 'detail': pr}, meeting
 
     taskid = prepare_result['data']
     print 'prepare success, taskid: ' + taskid
@@ -228,10 +241,10 @@ def recoginze(file_name, meeting_id):
     merge_result = json.loads(mr)
     if merge_result['ok'] != 0:
         print 'merge fail, ' + mr
-        delete_local_file(file_name)
-        return {'status':'error', 'detail': mr}
+        oss.delete_local_file(file_name)
+        return {'status':'error', 'detail': mr}, meeting
     
-    return {'taskid':taskid,'status':'success', 'detail': 'null'}
+    return {'taskid':taskid,'status':'success', 'detail': 'null'}, meeting
 
 def check(file_name, taskid):
     progress = get_progress(taskid, file_name)
