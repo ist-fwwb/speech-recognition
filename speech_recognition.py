@@ -181,6 +181,14 @@ class SliceIdGenerator:
         self.__ch = ch
         return self.__ch
 
+'''
+请求抵达后，若成功开始识别则建立该线程。
+确认语音识别完毕后，
+获取识别结果，
+删除本地音频文件，
+根据识别结果提取中心词，
+存入数据库，实现自动打tag
+'''
 def checkAndDelete(file_name, taskid, meeting):
     while True:
         # 每隔20秒获取一次任务进度
@@ -197,26 +205,24 @@ def checkAndDelete(file_name, taskid, meeting):
                 res = result(file_name, taskid)
                 text = res[0]["onebest"]
                 # save the tag
-                '''
-                tag_res = json.loads(text_structure.tag(text))
+                
+                tag_res = text_structure.tag(text)["data"]["label_name"]
                 for i in tag_res.split('/'):
                     #meeting.update(add_to_set__tag=i)
-
-                    meeting.tag.append(i)
+                    meeting.tags.append(i)
                 meeting.save()
-                print (meeting.tag)
-                '''
+                print(meeting.tags)
                 
                 oss.delete_local_file(file_name)
                 break
-            print 'The task ' + taskid + ' is in processing, task status: ' + data
+            print('The task ' + taskid + ' is in processing, task status: ' + data)
 
         # 每次获取进度间隔20S
         time.sleep(20)
 
 def recoginze(file_name, meeting_id):
     meeting = dao.Meeting.objects(id=meeting_id)
-    if len(meeting) == 0
+    if len(meeting) == 0:
         return {'status':'error', 'detail': 'Meeting not exist'}, None
     meeting = meeting[0]
 

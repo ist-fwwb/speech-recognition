@@ -25,4 +25,4 @@ def tag(text):
     request.set_version('2018-04-08') # 设置版本
     request.set_action_name("None")
     response = client.do_action_with_exception(request)
-    return response
+    return json.loads(response)

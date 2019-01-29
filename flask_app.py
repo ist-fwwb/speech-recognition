@@ -12,9 +12,9 @@ app.config['JSON_AS_ASCII'] = False
 
 @app.route('/recognize/<file_name>/<meeting_id>')
 def recognize_controller(file_name, meeting_id):
-    result = recoginze(file_name, meeting_id)
+    result, meeting = recoginze(file_name, meeting_id)
     if result["status"] != "error":
-        thread.start_new_thread(checkAndDelete, (file_name, result["taskid"]))
+        thread.start_new_thread(checkAndDelete, (file_name, result["taskid"], meeting))
     return jsonify(result)
 
 @app.route('/check/<file_name>/<taskid>')
