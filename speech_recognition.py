@@ -9,7 +9,7 @@ import json, time
 import httplib, urllib
 import os
 import random
-import text_structure
+import aliyun_nlp
 import oss
 import dao
 
@@ -189,7 +189,7 @@ class SliceIdGenerator:
 根据识别结果提取中心词，
 存入数据库，实现自动打tag
 '''
-def checkAndDelete(file_name, taskid, meeting):
+def checkAndDelete(file_name, taskid, note, meeting):
     while True:
         # 每隔20秒获取一次任务进度
         progress = get_progress(taskid, file_name)
@@ -200,19 +200,23 @@ def checkAndDelete(file_name, taskid, meeting):
         else :
             data = progress_dic['data']
             task_status = json.loads(data)
+            # success
             if task_status['status'] == 9:
                 print 'task ' + taskid + ' finished'
                 res = result(file_name, taskid)
                 text = res[0]["onebest"]
+                # save the text note
+                note.note = text
+                note.save()
+                print("Note: " + text)
                 # save the tag
                 
-                tag_res = text_structure.tag(text)["data"]["label_name"]
+                tag_res = aliyun_nlp.text_structure(text)["data"]["label_name"]
                 for i in tag_res.split('/'):
                     #meeting.update(add_to_set__tag=i)
                     meeting.tags.append(i)
                 meeting.save()
-                print(meeting.tags)
-                
+                print("Tags: " + meeting.tags)
                 oss.delete_local_file(file_name)
                 break
             print('The task ' + taskid + ' is in processing, task status: ' + data)
@@ -220,18 +224,14 @@ def checkAndDelete(file_name, taskid, meeting):
         # 每次获取进度间隔20S
         time.sleep(20)
 
-def recoginze(file_name, meeting_id):
-    meeting = dao.Meeting.objects(id=meeting_id)
-    if len(meeting) == 0:
-        return {'status':'error', 'detail': 'Meeting not exist'}, None
-    meeting = meeting[0]
+def recognize(file_name):
 
     oss.get_file_from_oss(file_name, file_name)
     pr = prepare(file_name)
     prepare_result = json.loads(pr)
     if prepare_result['ok'] != 0:
         print 'prepare error, ' + pr
-        return {'status':'error', 'detail': pr}, meeting
+        return {'status':'error', 'detail': pr}
 
     taskid = prepare_result['data']
     print 'prepare success, taskid: ' + taskid
@@ -248,9 +248,9 @@ def recoginze(file_name, meeting_id):
     if merge_result['ok'] != 0:
         print 'merge fail, ' + mr
         oss.delete_local_file(file_name)
-        return {'status':'error', 'detail': mr}, meeting
+        return {'status':'error', 'detail': mr}
     
-    return {'taskid':taskid,'status':'success', 'detail': 'null'}, meeting
+    return {'taskid':taskid,'status':'success', 'detail': 'null'}
 
 def check(file_name, taskid):
     progress = get_progress(taskid, file_name)

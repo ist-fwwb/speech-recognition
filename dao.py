@@ -1,14 +1,12 @@
 from mongoengine import *
 
 db_db = "MeetingRoom"
-db_host = "47.106.8.44"
-db_user = "MeetingRoomAdmin"
-db_password = "Pzy19980526"
-db_authentication_source = "MeetingRoom"
-connect(db=db_db, host=db_host, password=db_password, username=db_user, authentication_source=db_authentication_source)
+db_host = "pipipan.cn"
+connect(db=db_db, host=db_host)
 
 STATUS = ('Pending', 'Running', 'Cancelled', 'Stopped')
 TYPE = ('COMMON', 'URGENCY')
+NOTETYPE = ('HTML', 'VOICE')
 
 class Meeting(Document):
     _class = StringField(required=False)
@@ -26,3 +24,17 @@ class Meeting(Document):
     status = StringField(required=False, choices=STATUS)
     type = StringField(required=False, choices=TYPE)
     tags = ListField(required=False)
+    foreignGuestList = ListField(required=False)
+    timestamp = StringField(required=False)
+    meta = {'collection': 'meeting'}
+
+class MeetingNote(Document):
+    _class = StringField(required=False)
+    meetingNoteType = StringField(required=True, choices=NOTETYPE)
+    voiceFileName = StringField(required=False)
+    title = StringField(required=True)
+    note = StringField(required=False)
+    meetingId = StringField(required=True)
+    ownerId = StringField(required=True)
+    collectorIds = ListField(required=False)
+    meta = {'collection': 'MeetingNote'}
