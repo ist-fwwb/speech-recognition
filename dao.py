@@ -37,4 +37,4 @@ class MeetingNote(Document):
     meetingId = StringField(required=True)
     ownerId = StringField(required=True)
     collectorIds = ListField(required=False)
-    meta = {'collection': 'MeetingNote'}
+    meta = {'collection': 'meetingNote'}

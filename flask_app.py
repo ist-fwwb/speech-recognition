@@ -29,7 +29,7 @@ def recognize_controller(note_id):
 
     result = speech_recognition.recognize(note.voiceFileName)
     if result["status"] != "error":
-        thread.start_new_thread(speech_recognition.checkAndDelete, (file_name, result["taskid"], note))
+        thread.start_new_thread(speech_recognition.checkAndDelete, (file_name, result["taskid"], note, meeting))
     return jsonify(result)
 
 @app.route('/check/<file_name>/<taskid>')
