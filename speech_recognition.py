@@ -189,7 +189,8 @@ class SliceIdGenerator:
 根据识别结果提取中心词，
 存入数据库，实现自动打tag
 '''
-def checkAndDelete(file_name, taskid, note, meeting):
+def checkAndDelete(taskid, note, meeting):
+    file_name = note.voiceFileName
     while True:
         # 每隔20秒获取一次任务进度
         progress = get_progress(taskid, file_name)
