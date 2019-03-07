@@ -25,7 +25,7 @@ class Meeting(Document):
     type = StringField(required=False, choices=TYPE)
     tags = ListField(required=False)
     foreignGuestList = ListField(required=False)
-    timestamp = StringField(required=False)
+    timestamp = LongField(required=False)
     meta = {'collection': 'meeting'}
 
 class MeetingNote(Document):

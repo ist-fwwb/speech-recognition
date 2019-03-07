@@ -18,8 +18,8 @@ sys.setdefaultencoding('ISO-8859-1')
 
 lfasr_host = 'raasr.xfyun.cn'
 # 讯飞开放平台的appid和secret_key
-app_id = '5c4ac7a1'
-secret_key = 'eb31a37611c0a016ceaab92e2994e032'
+app_id = '5c8117cb'
+secret_key = 'c0384a7e3d352dd80c6e743dcc1653ea'
 # 请求的接口名
 api_prepare = '/prepare'
 api_upload = '/upload'
@@ -217,7 +217,7 @@ def checkAndDelete(taskid, note, meeting):
                     #meeting.update(add_to_set__tag=i)
                     meeting.tags.append(i)
                 meeting.save()
-                print("Tags: " + meeting.tags)
+                print(meeting.tags)
                 oss.delete_local_file(file_name)
                 break
             print('The task ' + taskid + ' is in processing, task status: ' + data)
