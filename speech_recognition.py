@@ -205,7 +205,9 @@ def checkAndDelete(taskid, note, meeting):
             if task_status['status'] == 9:
                 print 'task ' + taskid + ' finished'
                 res = result(file_name, taskid)
-                text = res[0]["onebest"]
+                text = ""
+                for i in res:
+                    text += i["onebest"]
                 # save the text note
                 note.note = text
                 note.save()
