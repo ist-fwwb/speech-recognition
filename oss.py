@@ -6,8 +6,8 @@ import oss2
 
 access_key_id = os.getenv('OSS_TEST_ACCESS_KEY_ID', 'LTAIqMIT5KX4oGAT')
 access_key_secret = os.getenv('OSS_TEST_ACCESS_KEY_SECRET', 'wYwZdNHrnvAiM9GNddiXqaeHcB4xfz')
-bucket_name = os.getenv('OSS_TEST_BUCKET', 'speech')
-endpoint = os.getenv('OSS_TEST_ENDPOINT', 'oss-cn-hangzhou.aliyuncs.com')
+bucket_name = os.getenv('OSS_TEST_BUCKET', 'face-file')
+endpoint = os.getenv('OSS_TEST_ENDPOINT', 'oss-cn-shanghai.aliyuncs.com')
 
 # 创建Bucket对象，所有Object相关的接口都可以通过Bucket对象来进行
 bucket = oss2.Bucket(oss2.Auth(access_key_id, access_key_secret), endpoint, bucket_name)
