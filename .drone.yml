@@ -5,7 +5,7 @@ pipeline:
     commands:
         - docker login --username=$DOCKER_USERNAME --password=$DOCKER_PASSWORD registry.cn-shenzhen.aliyuncs.com/pipipan/speech-recognition
         - docker build -t registry.cn-shenzhen.aliyuncs.com/pipipan/speech-recognition:master -f Dockerfile .
-        - docker push registry.cn-shenzhen.aliyuncs.com/pipipan/meetingroom:master
+        - docker push registry.cn-shenzhen.aliyuncs.com/pipipan/speech-recognition:master
     volumes:
         - /var/run/docker.sock:/var/run/docker.sock
     when:
