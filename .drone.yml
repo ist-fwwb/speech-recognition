@@ -1,0 +1,24 @@
+pipeline:
+  publish:
+    image: docker
+    secrets: [docker_username,docker_password]
+    commands:
+        - docker login --username=$DOCKER_USERNAME --password=$DOCKER_PASSWORD registry.cn-shenzhen.aliyuncs.com/pipipan/speech-recognition
+        - docker build -t registry.cn-shenzhen.aliyuncs.com/pipipan/speech-recognition:master -f Dockerfile .
+        - docker push registry.cn-shenzhen.aliyuncs.com/pipipan/meetingroom:master
+    volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+    when:
+        branch: master
+        status: success
+
+  deploy:
+    image: appleboy/drone-ssh
+    host: 47.106.8.44
+    secrets: [ssh_username, ssh_password]
+    port: 22
+    script:
+      - docker rm -f $(docker ps | grep speech-recognition:master | gawk '{ print $1 }')
+      - docker rmi $(docker images | grep speech-recognition | gawk '{ print $3 } ')
+      - docker run -it -d -p 5000:5000 registry.cn-shenzhen.aliyuncs.com/pipipan/speech-recognition:master
+
